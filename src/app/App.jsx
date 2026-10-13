@@ -8,6 +8,8 @@ import Login from '../pages/Login'
 import Register from '../pages/Register'
 import Claim from '../pages/Claim'
 import Elections from '../pages/Elections'
+import ElectionDetail from '../pages/ElectionDetail'
+import CandidateApply from '../pages/CandidateApply'
 import Apply from '../pages/Apply'
 import Results from '../pages/Results'
 import Profile from '../pages/Profile'
@@ -53,6 +55,8 @@ function Shell() {
 
       <Route element={<ProtectedRoute><ClaimedRoute><AppLayout /></ClaimedRoute></ProtectedRoute>}>
         <Route path="/elections" element={<Elections />} />
+        <Route path="/elections/:id" element={<ElectionDetail />} />
+        <Route path="/elections/:id/apply/:positionId" element={<CandidateApply />} />
         <Route path="/apply" element={<Apply />} />
         <Route path="/results" element={<Results />} />
         <Route path="/profile" element={<Profile />} />
