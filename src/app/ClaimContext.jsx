@@ -18,7 +18,7 @@ export function ClaimProvider({ children }) {
     setLoading(true)
     const { data, error } = await supabase
       .from('vote_profiles')
-      .select('id, email, full_name, admission_number, role, is_verified, is_active, approval_status, user_id')
+      .select('id, email, full_name, admission_number, role, is_verified, is_active, approval_status, user_id, avatar_url, faculty, course, year_of_study, profile_completed_at, profile_deadline_at, profile_nudge_deadline')
       .eq('user_id', session.user.id)
       .maybeSingle()
     if (error) {
@@ -33,7 +33,9 @@ export function ClaimProvider({ children }) {
   useEffect(() => { refresh() }, [refresh])
 
   const isClaimed = !!(profile && profile.user_id && profile.is_verified)
-  const value = { profile, loading, refresh, isClaimed }
+  const isProfileComplete = !!(profile && profile.profile_completed_at)
+
+  const value = { profile, loading, refresh, isClaimed, isProfileComplete }
   return <ClaimContext.Provider value={value}>{children}</ClaimContext.Provider>
 }
 

@@ -2,11 +2,13 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './AuthContext'
 import { ClaimProvider, useClaim } from './ClaimContext'
 import { useTheme } from '../hooks/useTheme'
+import ProfileNudge from '../components/ProfileNudge'
 import AppLayout from '../layouts/AppLayout'
 import Landing from '../pages/Landing'
 import Login from '../pages/Login'
 import Register from '../pages/Register'
 import Claim from '../pages/Claim'
+import ProfileSetup from '../pages/ProfileSetup'
 import Elections from '../pages/Elections'
 import ElectionDetail from '../pages/ElectionDetail'
 import CandidateApply from '../pages/CandidateApply'
@@ -47,23 +49,27 @@ function PublicOnlyRoute({ children }) {
 function Shell() {
   useTheme()
   return (
-    <Routes>
-      <Route path="/" element={<PublicOnlyRoute><Landing /></PublicOnlyRoute>} />
-      <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
-      <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
-      <Route path="/claim" element={<ProtectedRoute><Claim /></ProtectedRoute>} />
+    <>
+      <ProfileNudge />
+      <Routes>
+        <Route path="/" element={<PublicOnlyRoute><Landing /></PublicOnlyRoute>} />
+        <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+        <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
+        <Route path="/claim" element={<ProtectedRoute><Claim /></ProtectedRoute>} />
+        <Route path="/profile/setup" element={<ProtectedRoute><ClaimedRoute><ProfileSetup /></ClaimedRoute></ProtectedRoute>} />
 
-      <Route element={<ProtectedRoute><ClaimedRoute><AppLayout /></ClaimedRoute></ProtectedRoute>}>
-        <Route path="/elections" element={<Elections />} />
-        <Route path="/elections/:id" element={<ElectionDetail />} />
-        <Route path="/elections/:id/apply/:positionId" element={<CandidateApply />} />
-        <Route path="/apply" element={<Apply />} />
-        <Route path="/results" element={<Results />} />
-        <Route path="/profile" element={<Profile />} />
-      </Route>
+        <Route element={<ProtectedRoute><ClaimedRoute><AppLayout /></ClaimedRoute></ProtectedRoute>}>
+          <Route path="/elections" element={<Elections />} />
+          <Route path="/elections/:id" element={<ElectionDetail />} />
+          <Route path="/elections/:id/apply/:positionId" element={<CandidateApply />} />
+          <Route path="/apply" element={<Apply />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
 
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   )
 }
 
