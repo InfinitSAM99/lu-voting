@@ -1,9 +1,11 @@
 import { useAuth } from '../app/AuthContext'
+import { useClaim } from '../app/ClaimContext'
 import { useTheme } from '../hooks/useTheme'
-import { VoteIcon, SunIcon, MoonIcon } from '../components/Icons'
+import { VoteIcon, ShieldIcon, SunIcon, MoonIcon } from '../components/Icons'
 
 export default function Dashboard() {
-  const { profile, user, signOut } = useAuth()
+  const { user, signOut } = useAuth()
+  const { profile } = useClaim()
   const { theme, toggle } = useTheme()
 
   return (
@@ -33,17 +35,55 @@ export default function Dashboard() {
             {profile?.full_name || user?.email?.split('@')[0] || 'Student'}
           </h1>
           <p className="hero-subtitle">
-            {profile?.approval_status === 'approved'
-              ? 'Verified voter'
-              : 'Account pending verification'}
+            {profile?.is_verified ? 'Verified voter' : 'Account pending verification'}
           </p>
         </div>
 
         <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="card" style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <div style={{ color: '#10b981' }}><ShieldIcon size={28} /></div>
+            <div>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>Identity verified</div>
+              <div style={{ fontSize: 13, color: 'var(--text-3)' }}>
+                {profile?.admission_number || '—'}
+              </div>
+            </div>
+          </div>
+
           <div className="card">
             <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 8 }}>No active elections</div>
             <div style={{ fontSize: 14, lineHeight: 1.5 }}>
-              When an election opens, it will appear here with a fingerprint-authenticated ballot.
+              When an election opens, it will appear here with a ballot you can fill out.
+            </div>
+          </div>
+
+          <div className="card">
+            <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 12 }}>Advanced biometric enrollment</div>
+            <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--text-2)' }}>
+              Requires an external fingerprint reader. Not currently supported on this device.
+            </div>
+            <div style={{
+              marginTop: 16,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5, 1fr)',
+              gap: 8
+            }}>
+              {['L1','L2','L3','L4','L5','R1','R2','R3','R4','R5'].map(id => (
+                <div key={id} style={{
+                  aspectRatio: '1',
+                  background: 'var(--surface-2)',
+                  border: '1px dashed var(--border)',
+                  borderRadius: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  color: 'var(--text-3)',
+                  opacity: 0.4
+                }}>
+                  {id}
+                </div>
+              ))}
             </div>
           </div>
 
