@@ -632,3 +632,14 @@ grant execute on function vote_is_officer_for(uuid) to authenticated;
 grant execute on function vote_can_manage_election(uuid) to authenticated;
 grant execute on function vote_current_profile_id() to authenticated;
 grant execute on function vote_current_role() to authenticated;
+
+-- =========================================================
+-- 2H: Table grants (required for service_role + authenticated access)
+-- =========================================================
+grant usage on schema public to service_role, authenticated, anon;
+grant all on all tables in schema public to service_role;
+grant all on all sequences in schema public to service_role;
+grant all on all functions in schema public to service_role;
+
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
