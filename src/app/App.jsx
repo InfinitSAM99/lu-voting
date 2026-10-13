@@ -2,11 +2,15 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './AuthContext'
 import { ClaimProvider, useClaim } from './ClaimContext'
 import { useTheme } from '../hooks/useTheme'
+import AppLayout from '../layouts/AppLayout'
 import Landing from '../pages/Landing'
 import Login from '../pages/Login'
 import Register from '../pages/Register'
 import Claim from '../pages/Claim'
-import Dashboard from '../pages/Dashboard'
+import Elections from '../pages/Elections'
+import Apply from '../pages/Apply'
+import Results from '../pages/Results'
+import Profile from '../pages/Profile'
 import NotFound from '../pages/NotFound'
 
 function FullScreenLoader() {
@@ -34,7 +38,7 @@ function ClaimedRoute({ children }) {
 function PublicOnlyRoute({ children }) {
   const { session, loading } = useAuth()
   if (loading) return <FullScreenLoader />
-  if (session) return <Navigate to="/dashboard" replace />
+  if (session) return <Navigate to="/elections" replace />
   return children
 }
 
@@ -46,7 +50,14 @@ function Shell() {
       <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
       <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
       <Route path="/claim" element={<ProtectedRoute><Claim /></ProtectedRoute>} />
-      <Route path="/dashboard" element={<ProtectedRoute><ClaimedRoute><Dashboard /></ClaimedRoute></ProtectedRoute>} />
+
+      <Route element={<ProtectedRoute><ClaimedRoute><AppLayout /></ClaimedRoute></ProtectedRoute>}>
+        <Route path="/elections" element={<Elections />} />
+        <Route path="/apply" element={<Apply />} />
+        <Route path="/results" element={<Results />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   )

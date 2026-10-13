@@ -62,7 +62,7 @@ export default function Claim() {
     // Refresh claim context BEFORE navigating
     await refresh()
     setBusy(false)
-    nav('/dashboard', { replace: true })
+    nav('/elections', { replace: true })
   }
 
   return (
