@@ -14,7 +14,9 @@ import ElectionDetail from '../pages/ElectionDetail'
 import CandidateApply from '../pages/CandidateApply'
 import Apply from '../pages/Apply'
 import Results from '../pages/Results'
+import Vote from '../pages/Vote'
 import Profile from '../pages/Profile'
+import StudentVerify from '../pages/StudentVerify'
 import NotFound from '../pages/NotFound'
 
 function FullScreenLoader() {
@@ -57,11 +59,13 @@ function Shell() {
         <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
         <Route path="/claim" element={<ProtectedRoute><Claim /></ProtectedRoute>} />
         <Route path="/profile/setup" element={<ProtectedRoute><ClaimedRoute><ProfileSetup /></ClaimedRoute></ProtectedRoute>} />
+        <Route path="/verify" element={<ProtectedRoute><ClaimedRoute><StudentVerify /></ClaimedRoute></ProtectedRoute>} />
 
         <Route element={<ProtectedRoute><ClaimedRoute><AppLayout /></ClaimedRoute></ProtectedRoute>}>
           <Route path="/elections" element={<Elections />} />
           <Route path="/elections/:id" element={<ElectionDetail />} />
           <Route path="/elections/:id/apply/:positionId" element={<CandidateApply />} />
+          <Route path="/elections/:id/vote" element={<Vote />} />
           <Route path="/apply" element={<Apply />} />
           <Route path="/results" element={<Results />} />
           <Route path="/profile" element={<Profile />} />

@@ -144,3 +144,90 @@ body {
   color: var(--text-3);
   margin: 0;
 }
+
+.input-muted-value {
+  color: var(--text-2) !important;
+  font-weight: 600;
+}
+
+.input-muted-value::placeholder {
+  color: var(--text-3) !important;
+  font-weight: 500;
+}
+
+.il-input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  color: var(--text-2);
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.15s ease;
+  font-family: inherit;
+}
+.il-input:focus {
+  border-color: #ef4444;
+}
+.il-input::placeholder {
+  color: var(--text-3);
+  font-weight: 500;
+}
+.il-input:disabled {
+  color: var(--text-3);
+}
+
+.il-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0 16px;
+  transition: border-color 0.15s ease;
+  min-height: 56px;
+}
+.il-field:focus-within {
+  border-color: #ef4444;
+}
+.il-field-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.il-field-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.il-field-body input,
+.il-field-body select {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 16px 0;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-2);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.il-field-body input::placeholder {
+  color: var(--text-3);
+  font-weight: 500;
+}
+.il-field-body select {
+  cursor: pointer;
+}
+.il-field-body select option {
+  background: #0f0f0f;
+  color: #f2f3f5;
+}

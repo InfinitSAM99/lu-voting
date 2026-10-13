@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase/client'
 import { useAuth } from '../app/AuthContext'
 import { useClaim } from '../app/ClaimContext'
-import { ShieldIcon } from '../components/Icons'
+import { ShieldIcon, UserIcon, SchoolIcon, CalendarIcon, IdIcon } from '../components/Icons'
 
 const YEARS = [1, 2, 3, 4, 5, 6]
 
@@ -17,11 +17,14 @@ export default function ProfileSetup() {
   const [faculty, setFaculty] = useState('')
   const [yearOfStudy, setYearOfStudy] = useState('')
   const [photoUrl, setPhotoUrl] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   const [faculties, setFaculties] = useState([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [deadlineExpired, setDeadlineExpired] = useState(false)
+
+  const fileRef = useRef(null)
 
   useEffect(() => {
     if (profile) {
@@ -39,24 +42,48 @@ export default function ProfileSetup() {
       .select('id, name, sort_order')
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
-      .then(({ data }) => setFaculties(data || []))
+      .then(({ data, error: err }) => {
+        if (err) console.error('faculties error:', err)
+        setFaculties(data || [])
+      })
   }, [])
 
   useEffect(() => {
     if (!profile?.profile_deadline_at) return
     const deadline = new Date(profile.profile_deadline_at).getTime()
-    const check = () => {
-      if (Date.now() > deadline) setDeadlineExpired(true)
-    }
+    const check = () => { if (Date.now() > deadline) setDeadlineExpired(true) }
     check()
     const t = setInterval(check, 5000)
     return () => clearInterval(t)
   }, [profile?.profile_deadline_at])
 
+  const onFilePicked = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !profile?.id) return
+    if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5 MB'); return }
+
+    setError('')
+    setUploading(true)
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+      const path = `${profile.id}/avatar-${Date.now()}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('vote-avatars')
+        .upload(path, file, { upsert: true, contentType: file.type })
+      if (upErr) throw upErr
+      const { data: pub } = supabase.storage.from('vote-avatars').getPublicUrl(path)
+      setPhotoUrl(pub.publicUrl)
+    } catch (err) {
+      setError('Upload failed: ' + (err.message || String(err)))
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const save = async () => {
     setError('')
     if (!fullName.trim()) return setError('Full name is required')
-    if (!photoUrl.trim()) return setError('Profile photo is required')
+    if (!photoUrl) return setError('Profile photo is required')
     if (!faculty) return setError('Faculty is required')
     if (!yearOfStudy) return setError('Year of study is required')
 
@@ -65,13 +92,12 @@ export default function ProfileSetup() {
       .from('vote_profiles')
       .update({
         full_name: fullName.trim(),
-        avatar_url: photoUrl.trim(),
+        avatar_url: photoUrl,
         faculty,
         year_of_study: Number(yearOfStudy),
         profile_completed_at: new Date().toISOString()
       })
       .eq('id', profile.id)
-
     setBusy(false)
     if (err) return setError(err.message)
 
@@ -88,7 +114,7 @@ export default function ProfileSetup() {
     return <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-3)' }}>Loading…</div>
   }
 
-  const initials = (fullName || profile.email || '?').slice(0, 1).toUpperCase()
+  const initial = (fullName || profile.email || '?').slice(0, 1).toUpperCase()
 
   return (
     <>
@@ -109,7 +135,6 @@ export default function ProfileSetup() {
         <div style={{ display: 'flex', justifyContent: 'center', color: '#ef4444', marginBottom: 20 }}>
           <ShieldIcon size={72} />
         </div>
-
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, marginBottom: 8, letterSpacing: -0.4 }}>
           Complete your profile
         </h1>
@@ -133,57 +158,85 @@ export default function ProfileSetup() {
 
       <form
         onSubmit={(e) => { e.preventDefault(); save() }}
-        style={{ padding: '24px 20px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}
+        style={{ padding: '28px 20px 60px', display: 'flex', flexDirection: 'column', gap: 18 }}
       >
-
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        {/* PHOTO */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 8 }}>
           <div
+            onClick={() => !uploading && fileRef.current?.click()}
             style={{
               width: 96, height: 96, borderRadius: 9999,
               background: 'var(--surface-2)',
-              border: '1px solid var(--border)',
+              border: `2px ${photoUrl ? 'solid' : 'dashed'} ${photoUrl ? '#10b981' : 'var(--border)'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--text-3)', fontSize: 32, fontWeight: 700,
-              overflow: 'hidden'
+              color: 'var(--text-3)', fontSize: 34, fontWeight: 700,
+              overflow: 'hidden',
+              cursor: uploading ? 'wait' : 'pointer',
+              position: 'relative'
             }}
           >
             {photoUrl ? (
               <img src={photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : initials}
+            ) : initial}
+            {uploading && (
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'rgba(0,0,0,0.7)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontSize: 11, fontWeight: 600
+              }}>
+                Uploading
+              </div>
+            )}
           </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="user"
+            onChange={onFilePicked}
+            style={{ display: 'none' }}
+          />
+          <button
+            type="button"
+            onClick={() => !uploading && fileRef.current?.click()}
+            style={{
+              background: 'transparent', border: 'none',
+              color: '#ef4444', fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', padding: 4
+            }}
+          >
+            {photoUrl ? 'Change photo' : 'Add photo'}
+          </button>
         </div>
 
-        <Field label="Profile photo URL">
+        <Field
+          label="Full name"
+          icon={<UserIcon size={18} />}
+        >
           <input
-            className="input-field"
-            value={photoUrl}
-            onChange={(e) => setPhotoUrl(e.target.value)}
-            placeholder="https://…"
-            type="url"
-          />
-        </Field>
-
-        <Field label="Full name">
-          <input
-            className="input-field"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Your full name"
           />
         </Field>
 
-        <Field label="Admission number">
+        <Field
+          label="Admission number"
+          icon={<IdIcon size={18} />}
+        >
           <input
-            className="input-field"
             value={admissionNumber}
             disabled
-            style={{ opacity: 0.6 }}
+            style={{ opacity: 0.55 }}
           />
         </Field>
 
-        <Field label="Faculty / School">
+        <Field
+          label="Faculty / School"
+          icon={<SchoolIcon size={18} />}
+        >
           <select
-            className="input-field"
             value={faculty}
             onChange={(e) => setFaculty(e.target.value)}
           >
@@ -194,9 +247,11 @@ export default function ProfileSetup() {
           </select>
         </Field>
 
-        <Field label="Year of study">
+        <Field
+          label="Year of study"
+          icon={<CalendarIcon size={18} />}
+        >
           <select
-            className="input-field"
             value={yearOfStudy}
             onChange={(e) => setYearOfStudy(e.target.value)}
           >
@@ -211,7 +266,9 @@ export default function ProfileSetup() {
           </div>
         )}
 
-        <button type="submit" className="btn-primary" disabled={busy}>
+        <div style={{ height: 8 }} />
+
+        <button type="submit" className="btn-primary" disabled={busy || uploading}>
           {busy ? 'Saving…' : 'Save and continue'}
         </button>
       </form>
@@ -219,13 +276,27 @@ export default function ProfileSetup() {
   )
 }
 
-function Field({ label, children }) {
+function Field({ label, icon, children }) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: 12.5, color: 'var(--text-3)', marginBottom: 8, fontWeight: 600 }}>
+      <label
+        style={{
+          display: 'block',
+          fontSize: 13,
+          color: 'var(--text)',
+          marginBottom: 10,
+          fontWeight: 700,
+          letterSpacing: -0.1
+        }}
+      >
         {label}
       </label>
-      {children}
+      <div className="il-field">
+        <span className="il-field-icon">{icon}</span>
+        <div className="il-field-body">
+          {children}
+        </div>
+      </div>
     </div>
   )
 }

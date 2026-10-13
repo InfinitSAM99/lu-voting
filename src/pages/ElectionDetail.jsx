@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useClaim } from '../app/ClaimContext'
 import { supabase } from '../lib/supabase/client'
 import { VoteIcon, ShieldIcon } from '../components/Icons'
 import BottomDrawer from '../components/BottomDrawer'
@@ -46,6 +47,7 @@ function formatDateTime(d) {
 
 export default function ElectionDetail() {
   const { id } = useParams()
+  const { isVoterVerified } = useClaim()
   const nav = useNavigate()
   const [election, setElection] = useState(null)
   const [positions, setPositions] = useState([])
@@ -279,7 +281,7 @@ export default function ElectionDetail() {
         {isVotingOpen && (
           <button
             className="btn-primary"
-            onClick={() => nav(`/elections/${election.id}/vote`)}
+            onClick={() => { if (!isVoterVerified) { nav("/verify") } else { nav(`/elections/${election.id}/vote`) } }}
           >
             Vote now
           </button>

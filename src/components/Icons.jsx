@@ -43,3 +43,51 @@ export function MoonIcon({ size = 18 }) {
     </svg>
   )
 }
+
+export function UserIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 4-7 8-7s8 3 8 7" />
+    </svg>
+  )
+}
+
+export function SchoolIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 9l10-5 10 5-10 5L2 9z" />
+      <path d="M6 11.5V17c0 1.5 3 3 6 3s6-1.5 6-3v-5.5" />
+      <path d="M22 9v5" />
+    </svg>
+  )
+}
+
+export function CalendarIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="16" rx="3" />
+      <path d="M3 9h18M8 3v4M16 3v4" />
+    </svg>
+  )
+}
+
+export function PhotoIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <circle cx="9" cy="9" r="2" />
+      <path d="M21 15l-5-5L5 21" />
+    </svg>
+  )
+}
+
+export function IdIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="14" rx="3" />
+      <circle cx="8" cy="11" r="2" />
+      <path d="M13 10h5M13 13h5M5 17c0-1.5 1.3-3 3-3s3 1.5 3 3" />
+    </svg>
+  )
+}
