@@ -158,6 +158,7 @@ Deno.serve(async (req) => {
       election_id: electionId,
       profile_id: profile.id,
       receipt_token_hash: receiptHash,
+      receipt_prefix: receiptToken.replace(/-/g, "").slice(0, 12).toUpperCase(),
       ip_hash: ipHash,
       user_agent_hash: uaHash,
       biometrically_verified: false
@@ -174,6 +175,7 @@ Deno.serve(async (req) => {
     .insert({
       election_id: electionId,
       receipt_token_hash: receiptHash,
+      receipt_prefix: receiptToken.replace(/-/g, "").slice(0, 12).toUpperCase(),
       election_snapshot: snapshot,
       prev_hash: prevHash,
       self_hash: selfHash

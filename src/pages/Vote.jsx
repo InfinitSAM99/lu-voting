@@ -16,7 +16,7 @@ export default function Vote() {
   const [alreadyVoted, setAlreadyVoted] = useState(false)
   const [step, setStep] = useState('select')
   const [selections, setSelections] = useState({})
-  const [receiptToken, setReceiptToken] = useState('')
+  const [receiptCode, setReceiptCode] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function Vote() {
         setStep('review')
         return
       }
-      setReceiptToken(json.receipt_token)
+      setReceiptCode(json.receipt_token)
       setStep('done')
     } catch (err) {
       setError('Error: ' + err.message)
@@ -131,7 +131,7 @@ export default function Vote() {
 
   if (alreadyVoted) return <StatusScreen
     icon={<ShieldIcon size={72} />}
-    iconColor="#10b981"
+    iconColor="#ef4444"
     title="You have already voted"
     subtitle="Your vote has been recorded. One vote per election."
     action={{ label: 'Back to elections', onClick: () => nav('/elections') }}
@@ -187,7 +187,7 @@ export default function Vote() {
     </div>
   )
 
-  if (step === 'done') return <ReceiptStep receiptToken={receiptToken} onDone={() => nav('/elections')} />
+  if (step === 'done') return <ReceiptStep receiptCode={receiptCode} onDone={() => nav('/elections')} />
 
   return null
 }
@@ -347,7 +347,7 @@ function ConfirmStep({ onCancel, onSubmit }) {
       </div>
       <div style={{ flex: 1 }} />
       <div>
-        <button className="btn-primary" onClick={onSubmit} style={{ marginBottom: 12, background: '#10b981' }}>
+        <button className="btn-primary" onClick={onSubmit} style={{ marginBottom: 12 }}>
           Yes, submit my vote
         </button>
         <button className="btn-secondary" onClick={onCancel}>Go back</button>
@@ -356,14 +356,26 @@ function ConfirmStep({ onCancel, onSubmit }) {
   )
 }
 
-function ReceiptStep({ receiptToken, onDone }) {
-  const short = receiptToken
-    ? 'LU-' + receiptToken.replace(/-/g, '').slice(0, 4).toUpperCase() + '-' + receiptToken.replace(/-/g, '').slice(4, 8).toUpperCase() + '-' + receiptToken.replace(/-/g, '').slice(8, 12).toUpperCase()
+function ReceiptStep({ receiptCode, onDone }) {
+  const code = receiptCode
+    ? 'LU-' + receiptCode.replace(/-/g, '').slice(0, 4).toUpperCase()
+      + '-' + receiptCode.replace(/-/g, '').slice(4, 8).toUpperCase()
+      + '-' + receiptCode.replace(/-/g, '').slice(8, 12).toUpperCase()
     : '—'
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(code)
+      alert('Receipt copied')
+    } catch {
+      alert('Copy failed — long press the code to copy manually')
+    }
+  }
+
   return (
     <div style={{ padding: '80px 24px 40px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', color: '#10b981', marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', color: '#ef4444', marginBottom: 24 }}>
           <ShieldIcon size={72} />
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, marginBottom: 12, letterSpacing: -0.3 }}>
@@ -373,20 +385,29 @@ function ReceiptStep({ receiptToken, onDone }) {
           Your vote has been counted. Save your receipt below for verification.
         </p>
 
-        <div style={{
-          marginTop: 32,
-          padding: '20px',
-          background: 'var(--surface-2)',
-          borderRadius: 14,
-          border: '1px solid var(--border)'
-        }}>
-          <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: 600, marginBottom: 8 }}>
-            Receipt
+        <div
+          onClick={copy}
+          style={{
+            marginTop: 32,
+            padding: '20px',
+            background: 'var(--surface-2)',
+            borderRadius: 14,
+            border: '1px solid var(--border)',
+            cursor: 'pointer'
+          }}
+        >
+          <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: 600, marginBottom: 10 }}>
+            Receipt · tap to copy
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'monospace', letterSpacing: 1 }}>
-            {short}
+          <div style={{
+            fontSize: 18,
+            fontWeight: 700,
+            fontFamily: 'monospace',
+            letterSpacing: 1.5
+          }}>
+            {code}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 10, lineHeight: 1.5 }}>
             Anyone can verify this receipt proves your vote was counted, without seeing who you voted for.
           </div>
         </div>

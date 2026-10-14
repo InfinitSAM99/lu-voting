@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './AuthContext'
 import { ClaimProvider, useClaim } from './ClaimContext'
 import { useTheme } from '../hooks/useTheme'
+import Splash from '../components/Splash'
 import ProfileNudge from '../components/ProfileNudge'
 import AppLayout from '../layouts/AppLayout'
 import Landing from '../pages/Landing'
@@ -14,9 +16,10 @@ import ElectionDetail from '../pages/ElectionDetail'
 import CandidateApply from '../pages/CandidateApply'
 import Apply from '../pages/Apply'
 import Results from '../pages/Results'
-import Vote from '../pages/Vote'
 import Profile from '../pages/Profile'
 import StudentVerify from '../pages/StudentVerify'
+import VerifyReceipt from '../pages/VerifyReceipt'
+import Appeal from '../pages/Appeal'
 import NotFound from '../pages/NotFound'
 
 function FullScreenLoader() {
@@ -60,6 +63,9 @@ function Shell() {
         <Route path="/claim" element={<ProtectedRoute><Claim /></ProtectedRoute>} />
         <Route path="/profile/setup" element={<ProtectedRoute><ClaimedRoute><ProfileSetup /></ClaimedRoute></ProtectedRoute>} />
         <Route path="/verify" element={<ProtectedRoute><ClaimedRoute><StudentVerify /></ClaimedRoute></ProtectedRoute>} />
+        <Route path="/appeal" element={<ProtectedRoute><Appeal /></ProtectedRoute>} />
+        <Route path="/verify-receipt" element={<VerifyReceipt />} />
+        <Route path="/verify-receipt/:token" element={<VerifyReceipt />} />
 
         <Route element={<ProtectedRoute><ClaimedRoute><AppLayout /></ClaimedRoute></ProtectedRoute>}>
           <Route path="/elections" element={<Elections />} />
@@ -77,12 +83,18 @@ function Shell() {
   )
 }
 
+function Root() {
+  const [splashDone, setSplashDone] = useState(false)
+  if (!splashDone) return <Splash onDone={() => setSplashDone(true)} />
+  return <Shell />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ClaimProvider>
-          <Shell />
+          <Root />
         </ClaimProvider>
       </AuthProvider>
     </BrowserRouter>
