@@ -7,10 +7,15 @@ dist
 .DS_Store
 .vscode
 .idea
-android/app/build
-android/build
-android/.gradle
-android/app/google-services.json
+
+# Android — keep source, ignore build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/local.properties
+android/app/release/
 *.keystore
 *.jks
+
 supabase/.temp
