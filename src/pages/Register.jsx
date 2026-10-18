@@ -1,23 +1,27 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase/client'
+import { ShieldIcon } from '../components/Icons'
 
 export default function Register() {
   const nav = useNavigate()
+  const [step, setStep] = useState('form') // form | verify
   const [form, setForm] = useState({
     fullName: '',
     email: '',
     password: '',
     admissionNumber: ''
   })
+  const [otp, setOtp] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const submit = async (e) => {
+  const startSignup = async (e) => {
     e.preventDefault()
-    setError('')
+    setError(''); setInfo('')
 
     if (!form.fullName || !form.email || !form.password || !form.admissionNumber) {
       setError('All fields required')
@@ -29,33 +33,147 @@ export default function Register() {
     }
 
     setBusy(true)
-    const { error: err } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        data: {
-          full_name: form.fullName,
-          admission_number: form.admissionNumber
+    try {
+      const { data, error: err } = await supabase.auth.signUp({
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        options: {
+          data: {
+            full_name: form.fullName.trim(),
+            admission_number: form.admissionNumber.trim()
+          }
         }
-      }
-    })
-    setBusy(false)
-    if (err) {
-      setError(err.message)
-      return
+      })
+      setBusy(false)
+      if (err) { setError(err.message); return }
+
+      setInfo('A 6-digit code has been sent to your email. Check your inbox.')
+      setStep('verify')
+    } catch (err) {
+      setBusy(false)
+      setError(err.message || String(err))
     }
-    nav('/', { replace: true })
   }
 
+  const verifyOtp = async (e) => {
+    e.preventDefault()
+    setError('')
+
+    if (otp.length !== 6) { setError('Enter all 6 digits'); return }
+
+    setBusy(true)
+    try {
+      const { data, error: err } = await supabase.auth.verifyOtp({
+        email: form.email.trim().toLowerCase(),
+        token: otp.trim(),
+        type: 'signup'
+      })
+      setBusy(false)
+      if (err) { setError(err.message); return }
+
+      if (data?.session) {
+        nav('/', { replace: true })
+      } else {
+        setInfo('Verified. Please sign in.')
+        nav('/login', { replace: true })
+      }
+    } catch (err) {
+      setBusy(false)
+      setError(err.message || String(err))
+    }
+  }
+
+  const resendCode = async () => {
+    setError(''); setInfo('')
+    setBusy(true)
+    const { error: err } = await supabase.auth.resend({
+      type: 'signup',
+      email: form.email.trim().toLowerCase()
+    })
+    setBusy(false)
+    if (err) { setError(err.message); return }
+    setInfo('New code sent. Check your email.')
+  }
+
+  /* -------- VERIFY STEP -------- */
+  if (step === 'verify') {
+    return (
+      <div className="app-shell">
+        <div className="main-area">
+          <div style={{ padding: '32px 24px 20px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', color: '#ef4444', marginBottom: 20 }}>
+              <ShieldIcon size={64} />
+            </div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, marginBottom: 8, letterSpacing: -0.3 }}>
+              Verify your email
+            </h1>
+            <p style={{ fontSize: 13.5, color: 'var(--text-3)', margin: 0, lineHeight: 1.6 }}>
+              We sent a 6-digit code to <strong style={{ color: 'var(--text-2)' }}>{form.email}</strong>
+            </p>
+          </div>
+
+          <div style={{ height: 1, background: 'var(--border)', margin: '0 20px 24px' }} />
+
+          <form onSubmit={verifyOtp} style={{ padding: '0 20px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <input
+              className="input-field"
+              placeholder="000000"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              inputMode="numeric"
+              maxLength={6}
+              style={{ textAlign: 'center', fontSize: 28, letterSpacing: 12, fontWeight: 800 }}
+              required
+            />
+
+            {error && <ErrorBox text={error} />}
+            {info && <InfoBox text={info} />}
+
+            <button type="submit" className="btn-primary" disabled={busy || otp.length !== 6}>
+              {busy ? 'Verifying…' : 'Verify and continue'}
+            </button>
+
+            <button
+              type="button"
+              onClick={resendCode}
+              disabled={busy}
+              style={secondaryBtn}
+            >
+              Resend code
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setStep('form'); setOtp(''); setError(''); setInfo('') }}
+              style={linkBtn}
+            >
+              Use a different email
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  /* -------- FORM STEP -------- */
   return (
     <div className="app-shell">
       <div className="main-area">
-        <div className="hero">
-          <h1 className="hero-title">Create account</h1>
-          <p className="hero-subtitle">Register to vote</p>
+        <div style={{ padding: '32px 24px 20px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', color: '#ef4444', marginBottom: 20 }}>
+            <ShieldIcon size={72} />
+          </div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, marginBottom: 8, letterSpacing: -0.3 }}>
+            Create account
+          </h1>
+          <p style={{ fontSize: 13.5, color: 'var(--text-3)', margin: 0, lineHeight: 1.6 }}>
+            Register with your student details
+          </p>
         </div>
 
-        <form onSubmit={submit} style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ height: 1, background: 'var(--border)', margin: '0 20px 24px' }} />
+
+        <form onSubmit={startSignup} style={{ padding: '0 20px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input
             className="input-field"
             placeholder="Full name"
@@ -86,10 +204,10 @@ export default function Register() {
             autoComplete="new-password"
           />
 
-          {error && <div style={{ color: '#ef4444', fontSize: 13 }}>{error}</div>}
+          {error && <ErrorBox text={error} />}
 
           <button type="submit" className="btn-primary" disabled={busy}>
-            {busy ? 'Creating account…' : 'Create account'}
+            {busy ? 'Sending code…' : 'Continue'}
           </button>
 
           <div style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-3)', marginTop: 8 }}>
@@ -102,4 +220,41 @@ export default function Register() {
       </div>
     </div>
   )
+}
+
+function ErrorBox({ text }) {
+  return (
+    <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.1)', borderRadius: 12, color: '#ef4444', fontSize: 13 }}>
+      {text}
+    </div>
+  )
+}
+
+function InfoBox({ text }) {
+  return (
+    <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.06)', borderRadius: 12, color: 'var(--text-2)', fontSize: 13 }}>
+      {text}
+    </div>
+  )
+}
+
+const secondaryBtn = {
+  background: 'transparent',
+  border: '1px solid var(--border)',
+  borderRadius: 9999,
+  padding: 14,
+  color: 'var(--text-2)',
+  fontSize: 13,
+  fontWeight: 600,
+  cursor: 'pointer'
+}
+
+const linkBtn = {
+  background: 'transparent',
+  border: 'none',
+  color: 'var(--text-3)',
+  fontSize: 13,
+  fontWeight: 500,
+  cursor: 'pointer',
+  padding: 8
 }
