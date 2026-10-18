@@ -9,8 +9,8 @@ export default function Register() {
   const [form, setForm] = useState({
     fullName: '',
     email: '',
-    password: '',
-    admissionNumber: ''
+    admissionNumber: '',
+    password: ''
   })
   const [otp, setOtp] = useState('')
   const [busy, setBusy] = useState(false)
@@ -19,71 +19,77 @@ export default function Register() {
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const startSignup = async (e) => {
+  const submitForm = async (e) => {
     e.preventDefault()
     setError(''); setInfo('')
 
-    if (!form.fullName || !form.email || !form.password || !form.admissionNumber) {
-      setError('All fields required')
-      return
-    }
-    if (form.password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
-    }
+    if (!form.fullName.trim()) { setError('Full name is required'); return }
+    if (!form.email.trim()) { setError('Email is required'); return }
+    if (!form.admissionNumber.trim()) { setError('Admission number is required'); return }
+    if (form.password.length < 8) { setError('Password must be at least 8 characters'); return }
 
     setBusy(true)
-    try {
-      const { data, error: err } = await supabase.auth.signUp({
-        email: form.email.trim().toLowerCase(),
-        password: form.password,
-        options: {
-          data: {
-            full_name: form.fullName.trim(),
-            admission_number: form.admissionNumber.trim()
-          }
+    const { error: err } = await supabase.auth.signUp({
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      options: {
+        data: {
+          full_name: form.fullName.trim(),
+          admission_number: form.admissionNumber.trim()
         }
-      })
-      setBusy(false)
-      if (err) { setError(err.message); return }
+      }
+    })
+    setBusy(false)
 
-      setInfo('A 6-digit code has been sent to your email. Check your inbox.')
-      setStep('verify')
-    } catch (err) {
-      setBusy(false)
-      setError(err.message || String(err))
+    if (err) {
+      if (/already|registered/i.test(err.message)) {
+        setError('That email is already registered. Try signing in.')
+      } else {
+        setError(err.message)
+      }
+      return
     }
+
+    setInfo(`A 6-digit code has been sent to ${form.email}`)
+    setStep('verify')
   }
 
-  const verifyOtp = async (e) => {
+  const submitOtp = async (e) => {
     e.preventDefault()
     setError('')
 
     if (otp.length !== 6) { setError('Enter all 6 digits'); return }
 
     setBusy(true)
-    try {
-      const { data, error: err } = await supabase.auth.verifyOtp({
-        email: form.email.trim().toLowerCase(),
-        token: otp.trim(),
-        type: 'signup'
-      })
-      setBusy(false)
-      if (err) { setError(err.message); return }
+    const { data, error: err } = await supabase.auth.verifyOtp({
+      email: form.email.trim().toLowerCase(),
+      token: otp.trim(),
+      type: 'signup'
+    })
+    setBusy(false)
 
-      if (data?.session) {
-        nav('/', { replace: true })
-      } else {
-        setInfo('Verified. Please sign in.')
-        nav('/login', { replace: true })
+    if (err) {
+      setError(err.message)
+      return
+    }
+
+    if (data?.session) {
+      nav('/', { replace: true })
+    } else {
+      // Session not created — auto-login with password
+      const { error: loginErr } = await supabase.auth.signInWithPassword({
+        email: form.email.trim().toLowerCase(),
+        password: form.password
+      })
+      if (loginErr) {
+        setError('Verified but sign-in failed: ' + loginErr.message)
+        return
       }
-    } catch (err) {
-      setBusy(false)
-      setError(err.message || String(err))
+      nav('/', { replace: true })
     }
   }
 
-  const resendCode = async () => {
+  const resend = async () => {
     setError(''); setInfo('')
     setBusy(true)
     const { error: err } = await supabase.auth.resend({
@@ -92,7 +98,7 @@ export default function Register() {
     })
     setBusy(false)
     if (err) { setError(err.message); return }
-    setInfo('New code sent. Check your email.')
+    setInfo('New code sent. Check your inbox.')
   }
 
   /* -------- VERIFY STEP -------- */
@@ -114,7 +120,7 @@ export default function Register() {
 
           <div style={{ height: 1, background: 'var(--border)', margin: '0 20px 24px' }} />
 
-          <form onSubmit={verifyOtp} style={{ padding: '0 20px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <form onSubmit={submitOtp} style={{ padding: '0 20px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
             <input
               className="input-field"
               placeholder="000000"
@@ -126,8 +132,16 @@ export default function Register() {
               required
             />
 
-            {error && <ErrorBox text={error} />}
-            {info && <InfoBox text={info} />}
+            {error && (
+              <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.1)', borderRadius: 12, color: '#ef4444', fontSize: 13 }}>
+                {error}
+              </div>
+            )}
+            {info && (
+              <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.06)', borderRadius: 12, color: 'var(--text-2)', fontSize: 13 }}>
+                {info}
+              </div>
+            )}
 
             <button type="submit" className="btn-primary" disabled={busy || otp.length !== 6}>
               {busy ? 'Verifying…' : 'Verify and continue'}
@@ -135,9 +149,18 @@ export default function Register() {
 
             <button
               type="button"
-              onClick={resendCode}
+              onClick={resend}
               disabled={busy}
-              style={secondaryBtn}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                borderRadius: 9999,
+                padding: 14,
+                color: 'var(--text-2)',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
             >
               Resend code
             </button>
@@ -145,7 +168,15 @@ export default function Register() {
             <button
               type="button"
               onClick={() => { setStep('form'); setOtp(''); setError(''); setInfo('') }}
-              style={linkBtn}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-3)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                padding: 8
+              }}
             >
               Use a different email
             </button>
@@ -159,21 +190,21 @@ export default function Register() {
   return (
     <div className="app-shell">
       <div className="main-area">
-        <div style={{ padding: '32px 24px 20px', textAlign: 'center' }}>
+        <div style={{ padding: '40px 24px 20px', textAlign: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'center', color: '#ef4444', marginBottom: 20 }}>
             <ShieldIcon size={72} />
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, marginBottom: 8, letterSpacing: -0.3 }}>
             Create account
           </h1>
-          <p style={{ fontSize: 13.5, color: 'var(--text-3)', margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13.5, color: 'var(--text-3)', margin: 0 }}>
             Register with your student details
           </p>
         </div>
 
         <div style={{ height: 1, background: 'var(--border)', margin: '0 20px 24px' }} />
 
-        <form onSubmit={startSignup} style={{ padding: '0 20px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form onSubmit={submitForm} style={{ padding: '0 20px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input
             className="input-field"
             placeholder="Full name"
@@ -204,10 +235,14 @@ export default function Register() {
             autoComplete="new-password"
           />
 
-          {error && <ErrorBox text={error} />}
+          {error && (
+            <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.1)', borderRadius: 12, color: '#ef4444', fontSize: 13 }}>
+              {error}
+            </div>
+          )}
 
           <button type="submit" className="btn-primary" disabled={busy}>
-            {busy ? 'Sending code…' : 'Continue'}
+            {busy ? 'Creating account…' : 'Continue'}
           </button>
 
           <div style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-3)', marginTop: 8 }}>
@@ -220,41 +255,4 @@ export default function Register() {
       </div>
     </div>
   )
-}
-
-function ErrorBox({ text }) {
-  return (
-    <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.1)', borderRadius: 12, color: '#ef4444', fontSize: 13 }}>
-      {text}
-    </div>
-  )
-}
-
-function InfoBox({ text }) {
-  return (
-    <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.06)', borderRadius: 12, color: 'var(--text-2)', fontSize: 13 }}>
-      {text}
-    </div>
-  )
-}
-
-const secondaryBtn = {
-  background: 'transparent',
-  border: '1px solid var(--border)',
-  borderRadius: 9999,
-  padding: 14,
-  color: 'var(--text-2)',
-  fontSize: 13,
-  fontWeight: 600,
-  cursor: 'pointer'
-}
-
-const linkBtn = {
-  background: 'transparent',
-  border: 'none',
-  color: 'var(--text-3)',
-  fontSize: 13,
-  fontWeight: 500,
-  cursor: 'pointer',
-  padding: 8
 }

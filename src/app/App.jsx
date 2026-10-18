@@ -11,7 +11,6 @@ import Login from '../pages/Login'
 import ForgotPassword from '../pages/ForgotPassword'
 import ResetPassword from '../pages/ResetPassword'
 import Register from '../pages/Register'
-import Claim from '../pages/Claim'
 import UpdateProfileGate from '../pages/UpdateProfileGate'
 import FakeIdentityAppeal from '../pages/FakeIdentityAppeal'
 import Elections from '../pages/Elections'
@@ -41,13 +40,6 @@ function ProtectedRoute({ children }) {
   return children
 }
 
-function ClaimedRoute({ children }) {
-  const { isClaimed, loading } = useClaim()
-  if (loading) return <FullScreenLoader />
-  if (!isClaimed) return <Navigate to="/claim" replace />
-  return children
-}
-
 function UnlockedRoute({ children }) {
   const { lockActive } = useProfileLock()
   if (lockActive) return <Navigate to="/update-profile" replace />
@@ -69,13 +61,12 @@ function Shell() {
       <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute>} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
-      <Route path="/claim" element={<ProtectedRoute><Claim /></ProtectedRoute>} />
 
-      <Route path="/update-profile" element={<ProtectedRoute><ClaimedRoute><UpdateProfileGate /></ClaimedRoute></ProtectedRoute>} />
-      <Route path="/fake-identity-appeal" element={<ProtectedRoute><ClaimedRoute><FakeIdentityAppeal /></ClaimedRoute></ProtectedRoute>} />
+      <Route path="/update-profile" element={<ProtectedRoute><UpdateProfileGate /></ProtectedRoute>} />
+      <Route path="/fake-identity-appeal" element={<ProtectedRoute><FakeIdentityAppeal /></ProtectedRoute>} />
 
       <Route path="/" element={
-        <ProtectedRoute><ClaimedRoute><UnlockedRoute><HomePage /></UnlockedRoute></ClaimedRoute></ProtectedRoute>
+        <ProtectedRoute><UnlockedRoute><HomePage /></UnlockedRoute></ProtectedRoute>
       } />
 
       <Route path="/appeal" element={<ProtectedRoute><Appeal /></ProtectedRoute>} />
@@ -83,44 +74,44 @@ function Shell() {
       <Route path="/verify-receipt/:token" element={<VerifyReceipt />} />
 
       <Route path="/elections" element={
-        <ProtectedRoute><ClaimedRoute><UnlockedRoute>
+        <ProtectedRoute><UnlockedRoute>
           <AppPageShell title="Elections" logo><Elections /></AppPageShell>
-        </UnlockedRoute></ClaimedRoute></ProtectedRoute>
+        </UnlockedRoute></ProtectedRoute>
       } />
       <Route path="/elections/:id" element={
-        <ProtectedRoute><ClaimedRoute><UnlockedRoute>
+        <ProtectedRoute><UnlockedRoute>
           <AppPageShell title="Election" logo><ElectionDetail /></AppPageShell>
-        </UnlockedRoute></ClaimedRoute></ProtectedRoute>
+        </UnlockedRoute></ProtectedRoute>
       } />
       <Route path="/elections/:id/apply/:positionId" element={
-        <ProtectedRoute><ClaimedRoute><UnlockedRoute>
+        <ProtectedRoute><UnlockedRoute>
           <AppPageShell title="Apply" logo><CandidateApply /></AppPageShell>
-        </UnlockedRoute></ClaimedRoute></ProtectedRoute>
+        </UnlockedRoute></ProtectedRoute>
       } />
       <Route path="/elections/:id/vote" element={
-        <ProtectedRoute><ClaimedRoute><UnlockedRoute>
+        <ProtectedRoute><UnlockedRoute>
           <AppPageShell title="Cast your vote" logo><Vote /></AppPageShell>
-        </UnlockedRoute></ClaimedRoute></ProtectedRoute>
+        </UnlockedRoute></ProtectedRoute>
       } />
       <Route path="/apply" element={
-        <ProtectedRoute><ClaimedRoute><UnlockedRoute>
+        <ProtectedRoute><UnlockedRoute>
           <AppPageShell title="Apply" logo><Apply /></AppPageShell>
-        </UnlockedRoute></ClaimedRoute></ProtectedRoute>
+        </UnlockedRoute></ProtectedRoute>
       } />
       <Route path="/results" element={
-        <ProtectedRoute><ClaimedRoute><UnlockedRoute>
+        <ProtectedRoute><UnlockedRoute>
           <AppPageShell title="Results" logo><Results /></AppPageShell>
-        </UnlockedRoute></ClaimedRoute></ProtectedRoute>
+        </UnlockedRoute></ProtectedRoute>
       } />
       <Route path="/verify" element={
-        <ProtectedRoute><ClaimedRoute><UnlockedRoute>
+        <ProtectedRoute><UnlockedRoute>
           <AppPageShell title="Verify" logo><StudentVerify /></AppPageShell>
-        </UnlockedRoute></ClaimedRoute></ProtectedRoute>
+        </UnlockedRoute></ProtectedRoute>
       } />
       <Route path="/profile" element={
-        <ProtectedRoute><ClaimedRoute><UnlockedRoute>
+        <ProtectedRoute><UnlockedRoute>
           <AppPageShell title="Profile"><Profile /></AppPageShell>
-        </UnlockedRoute></ClaimedRoute></ProtectedRoute>
+        </UnlockedRoute></ProtectedRoute>
       } />
 
       <Route path="*" element={<NotFound />} />

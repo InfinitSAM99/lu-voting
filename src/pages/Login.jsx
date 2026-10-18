@@ -9,27 +9,29 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [info, setInfo] = useState('')
 
   const submit = async (e) => {
     e.preventDefault()
-    setError(''); setInfo('')
+    setError('')
     setBusy(true)
+
     const { error: err } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password
     })
+
     setBusy(false)
     if (err) {
-      if (/confirm/i.test(err.message)) {
-        setError('Your email is not verified. Register again or contact support.')
-      } else if (/invalid/i.test(err.message)) {
+      if (/invalid/i.test(err.message)) {
         setError('Wrong email or password')
+      } else if (/confirm/i.test(err.message)) {
+        setError('Email not confirmed. Ask admin to confirm your account.')
       } else {
         setError(err.message)
       }
       return
     }
+
     nav('/', { replace: true })
   }
 
@@ -73,11 +75,6 @@ export default function Login() {
           {error && (
             <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.1)', borderRadius: 12, color: '#ef4444', fontSize: 13 }}>
               {error}
-            </div>
-          )}
-          {info && (
-            <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.06)', borderRadius: 12, color: 'var(--text-2)', fontSize: 13 }}>
-              {info}
             </div>
           )}
 
