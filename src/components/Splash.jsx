@@ -66,7 +66,7 @@ export default function Splash({ onDone }) {
           textAlign: 'center'
         }}
       >
-        LU Voting · by Samuel Mugasia
+        LU VOTE · by InfinitSAM
       </div>
     </div>
   )

@@ -19,7 +19,7 @@ export default function Login() {
       setError(err.message)
       return
     }
-    nav('/elections', { replace: true })
+    nav('/', { replace: true })
   }
 
   return (

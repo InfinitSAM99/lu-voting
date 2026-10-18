@@ -8,7 +8,9 @@ const PROFILE_FIELDS = `
   id, email, full_name, admission_number, role,
   is_verified, is_active, approval_status, user_id,
   avatar_url, faculty, course, year_of_study,
-  profile_completed_at, profile_deadline_at, profile_nudge_deadline,
+  profile_completed_at, profile_lock_active, profile_lock_started_at,
+  profile_flagged, profile_flag_reason, profile_flagged_at,
+  identity_appeal_status,
   verification_status, verification_rejection_reason,
   warning_count, ban_count, banned_at, ban_until, is_permanently_banned,
   appeal_status, badges

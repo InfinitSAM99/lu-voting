@@ -118,3 +118,23 @@ export function ChartIcon({ size = 24 }) {
     </svg>
   )
 }
+
+export function HomeIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10.5L12 3l9 7.5" />
+      <path d="M5 10v11h14V10" />
+    </svg>
+  )
+}
+
+export function UsersIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2 21c0-3.5 3.5-6 7-6s7 2.5 7 6" />
+      <path d="M17 11a3 3 0 1 0 0-6" />
+      <path d="M22 21c0-2.5-1.5-4-3-5" />
+    </svg>
+  )
+}

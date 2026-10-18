@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase/client'
 import { useClaim } from '../app/ClaimContext'
 import { ShieldIcon, VoteIcon } from '../components/Icons'
+import BiometricPrompt from '../components/BiometricPrompt'
 
 export default function Vote() {
   const { id: electionId } = useParams()
@@ -17,6 +18,8 @@ export default function Vote() {
   const [step, setStep] = useState('select')
   const [selections, setSelections] = useState({})
   const [receiptCode, setReceiptCode] = useState('')
+  const [biometricOpen, setBiometricOpen] = useState(false)
+  const [biometricVerified, setBiometricVerified] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -85,7 +88,7 @@ export default function Vote() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`
           },
-          body: JSON.stringify({ election_id: electionId, selections })
+          body: JSON.stringify({ election_id: electionId, selections, biometrically_verified: biometricVerified })
         }
       )
       const json = await res.json()
@@ -176,10 +179,22 @@ export default function Vote() {
     )}
   </>
 
-  if (step === 'confirm') return <ConfirmStep
-    onCancel={() => setStep('review')}
-    onSubmit={submitVote}
-  />
+  if (step === 'confirm') return <>
+    <ConfirmStep
+      onCancel={() => setStep('review')}
+      onSubmit={() => setBiometricOpen(true)}
+    />
+    <BiometricPrompt
+      open={biometricOpen}
+      onClose={() => setBiometricOpen(false)}
+      onSuccess={() => {
+        setBiometricOpen(false)
+        setBiometricVerified(true)
+        submitVote()
+      }}
+      onFail={() => setBiometricOpen(false)}
+    />
+  </>
 
   if (step === 'submitting') return (
     <div style={{ padding: 80, textAlign: 'center' }}>

@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
       receipt_prefix: receiptToken.replace(/-/g, "").slice(0, 12).toUpperCase(),
       ip_hash: ipHash,
       user_agent_hash: uaHash,
-      biometrically_verified: false
+      biometrically_verified: body?.biometrically_verified === true
     })
 
   if (partErr) {

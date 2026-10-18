@@ -33,6 +33,7 @@ html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 body {
@@ -43,15 +44,25 @@ body {
   overscroll-behavior-y: none;
 }
 
+/* Bulletproof shell — pins to real viewport on Android WebView */
 .app-shell {
-  height: 100vh;
-  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
 }
 
+/* Flex children that need to shrink must have min-height: 0 */
+.app-shell > * { min-height: 0; }
+
 .main-area {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -69,15 +80,8 @@ body {
   transition: opacity 0.15s ease;
   width: 100%;
 }
-
-.btn-primary:active {
-  opacity: 0.85;
-}
-
-.btn-primary:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+.btn-primary:active { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-secondary {
   background: var(--surface-2);
@@ -102,14 +106,8 @@ body {
   outline: none;
   transition: border-color 0.15s ease;
 }
-
-.input-field:focus {
-  border-color: #ef4444;
-}
-
-.input-field::placeholder {
-  color: var(--text-3);
-}
+.input-field:focus { border-color: #ef4444; }
+.input-field::placeholder { color: var(--text-3); }
 
 .card {
   background: var(--surface);
@@ -118,67 +116,12 @@ body {
   padding: 20px;
 }
 
-.hero {
-  padding: 32px 20px 24px;
-  text-align: center;
-}
+.hero { padding: 32px 20px 24px; text-align: center; }
+.hero-icon { width: 72px; height: 72px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; color: #ef4444; }
+.hero-title { font-size: 24px; font-weight: 700; margin: 0 0 8px; }
+.hero-subtitle { font-size: 14px; color: var(--text-3); margin: 0; }
 
-.hero-icon {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ef4444;
-}
-
-.hero-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0 0 8px;
-}
-
-.hero-subtitle {
-  font-size: 14px;
-  color: var(--text-3);
-  margin: 0;
-}
-
-.input-muted-value {
-  color: var(--text-2) !important;
-  font-weight: 600;
-}
-
-.input-muted-value::placeholder {
-  color: var(--text-3) !important;
-  font-weight: 500;
-}
-
-.il-input {
-  width: 100%;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
-  color: var(--text-2);
-  font-size: 15px;
-  font-weight: 600;
-  outline: none;
-  transition: border-color 0.15s ease;
-  font-family: inherit;
-}
-.il-input:focus {
-  border-color: #ef4444;
-}
-.il-input::placeholder {
-  color: var(--text-3);
-  font-weight: 500;
-}
-.il-input:disabled {
-  color: var(--text-3);
-}
-
+/* Split-input style field (icon inside) */
 .il-field {
   display: flex;
   align-items: center;
@@ -190,9 +133,7 @@ body {
   transition: border-color 0.15s ease;
   min-height: 56px;
 }
-.il-field:focus-within {
-  border-color: #ef4444;
-}
+.il-field:focus-within { border-color: #ef4444; }
 .il-field-icon {
   display: flex;
   align-items: center;
@@ -224,9 +165,7 @@ body {
   color: var(--text-3);
   font-weight: 500;
 }
-.il-field-body select {
-  cursor: pointer;
-}
+.il-field-body select { cursor: pointer; }
 .il-field-body select option {
   background: #0f0f0f;
   color: #f2f3f5;
@@ -243,9 +182,7 @@ body {
   animation: lu-stage-in 800ms ease-out;
 }
 .lu-splash-stage.drawn {
-  animation:
-    lu-stage-in 800ms ease-out,
-    lu-logo-glow 2400ms ease-in-out infinite;
+  animation: lu-stage-in 800ms ease-out, lu-logo-glow 2400ms ease-in-out infinite;
 }
 .lu-splash-frame {
   fill: none;
@@ -292,4 +229,230 @@ body {
 @keyframes lu-stage-in {
   from { transform: scale(0.85); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
+}
+
+/* ============ LOOPING SPLASH LOGO ============ */
+.lu-splash-stage-loop .lu-splash-frame {
+  animation: lu-draw-frame 1800ms ease-out infinite;
+}
+.lu-splash-stage-loop .lu-splash-letter-l {
+  animation: lu-draw-letter-l 1100ms 1500ms ease-out infinite;
+}
+.lu-splash-stage-loop .lu-splash-letter-u {
+  animation: lu-draw-letter-u 1300ms 2400ms ease-out infinite;
+}
+.lu-splash-stage-loop .lu-splash-glow {
+  animation: lu-glow-pulse-loop 5000ms ease-out infinite;
+}
+
+/* Redraw + fade before restart */
+@keyframes lu-draw-frame {
+  0%   { stroke-dashoffset: 800; }
+  36%  { stroke-dashoffset: 0; }
+  88%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes lu-draw-letter-l {
+  0%   { stroke-dashoffset: 400; }
+  22%  { stroke-dashoffset: 0; }
+  88%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes lu-draw-letter-u {
+  0%   { stroke-dashoffset: 400; }
+  26%  { stroke-dashoffset: 0; }
+  88%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes lu-glow-pulse-loop {
+  0%   { opacity: 0; stroke-width: 6; }
+  76%  { opacity: 0; stroke-width: 6; }
+  82%  { opacity: 0.9; stroke-width: 6; }
+  92%  { opacity: 0; stroke-width: 24; }
+  100% { opacity: 0; stroke-width: 24; }
+}
+
+/* ============ ANIMATED LU LOGO — 5s loop ============ */
+.lu-anim-stage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: lu-anim-glow-wrap 5000ms ease-in-out infinite;
+}
+
+.lu-anim-frame {
+  fill: none;
+  stroke: #ef4444;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+  animation: lu-anim-draw-frame 5000ms ease-out infinite;
+}
+.lu-anim-letter {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+}
+.lu-anim-letter-l {
+  animation: lu-anim-draw-l 5000ms ease-out infinite;
+}
+.lu-anim-letter-u {
+  animation: lu-anim-draw-u 5000ms ease-out infinite;
+}
+.lu-anim-glow {
+  fill: none;
+  stroke: #ef4444;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  animation: lu-anim-glow-pulse 5000ms ease-out infinite;
+}
+
+/* Frame: draws 0-36%, holds, fades 88-100% */
+@keyframes lu-anim-draw-frame {
+  0%   { stroke-dashoffset: 800; opacity: 1; }
+  36%  { stroke-dashoffset: 0;   opacity: 1; }
+  88%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+/* Letter L: starts at 30% (1.5s), ends at ~52% */
+@keyframes lu-anim-draw-l {
+  0%   { stroke-dashoffset: 400; opacity: 0; }
+  29%  { stroke-dashoffset: 400; opacity: 1; }
+  52%  { stroke-dashoffset: 0;   opacity: 1; }
+  88%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+/* Letter U: starts at 48% (2.4s), ends at ~74% */
+@keyframes lu-anim-draw-u {
+  0%   { stroke-dashoffset: 400; opacity: 0; }
+  47%  { stroke-dashoffset: 400; opacity: 1; }
+  74%  { stroke-dashoffset: 0;   opacity: 1; }
+  88%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+/* Glow pulse: kicks in after drawing, ends before redraw */
+@keyframes lu-anim-glow-pulse {
+  0%   { opacity: 0; stroke-width: 6; }
+  76%  { opacity: 0; stroke-width: 6; }
+  82%  { opacity: 0.9; stroke-width: 6; }
+  92%  { opacity: 0; stroke-width: 22; }
+  100% { opacity: 0; stroke-width: 22; }
+}
+
+/* Overall wrapper glow — soft continuous pulse */
+@keyframes lu-anim-glow-wrap {
+  0%   { filter: drop-shadow(0 0 2px  rgba(239, 68, 68, 0.0)); }
+  50%  { filter: drop-shadow(0 0 14px rgba(239, 68, 68, 0.45)); }
+  80%  { filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.55)); }
+  100% { filter: drop-shadow(0 0 2px  rgba(239, 68, 68, 0.0)); }
+}
+
+/* ============ SPLASH/INLINE LOGO — 6s loop ============ */
+.lu-splash-stage.lu-loop .lu-splash-frame {
+  animation: lu-draw-frame-loop 6000ms ease-out infinite;
+}
+.lu-splash-stage.lu-loop .lu-splash-letter-l {
+  animation: lu-draw-letter-l-loop 6000ms ease-out infinite;
+}
+.lu-splash-stage.lu-loop .lu-splash-letter-u {
+  animation: lu-draw-letter-u-loop 6000ms ease-out infinite;
+}
+.lu-splash-stage.lu-loop .lu-splash-glow {
+  animation: lu-glow-loop 6000ms ease-out infinite;
+}
+
+/* Frame draws in ~1.8s (30% of 6s), holds, then fades quickly before restart */
+@keyframes lu-draw-frame-loop {
+  0%   { stroke-dashoffset: 800; opacity: 1; }
+  30%  { stroke-dashoffset: 0;   opacity: 1; }
+  92%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+/* L draws at 25% (1.5s), completes at 43% (2.6s) */
+@keyframes lu-draw-letter-l-loop {
+  0%   { stroke-dashoffset: 400; opacity: 0; }
+  25%  { stroke-dashoffset: 400; opacity: 1; }
+  43%  { stroke-dashoffset: 0;   opacity: 1; }
+  92%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+/* U draws at 40% (2.4s), completes at 62% (3.7s) */
+@keyframes lu-draw-letter-u-loop {
+  0%   { stroke-dashoffset: 400; opacity: 0; }
+  40%  { stroke-dashoffset: 400; opacity: 1; }
+  62%  { stroke-dashoffset: 0;   opacity: 1; }
+  92%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+/* Glow starts at ~63% (3.8s), ends before restart */
+@keyframes lu-glow-loop {
+  0%   { opacity: 0; stroke-width: 6; }
+  63%  { opacity: 0; stroke-width: 6; }
+  68%  { opacity: 0.9; stroke-width: 6; }
+  88%  { opacity: 0; stroke-width: 24; }
+  100% { opacity: 0; stroke-width: 24; }
+}
+
+/* ============ SPLASH/INLINE LOGO — 6s loop ============ */
+.lu-splash-stage.lu-loop .lu-splash-frame {
+  animation: lu-draw-frame-loop 6000ms ease-out infinite;
+}
+.lu-splash-stage.lu-loop .lu-splash-letter-l {
+  animation: lu-draw-letter-l-loop 6000ms ease-out infinite;
+}
+.lu-splash-stage.lu-loop .lu-splash-letter-u {
+  animation: lu-draw-letter-u-loop 6000ms ease-out infinite;
+}
+.lu-splash-stage.lu-loop .lu-splash-glow {
+  animation: lu-glow-loop 6000ms ease-out infinite;
+}
+
+/* Frame draws in ~1.8s (30% of 6s), holds, then fades quickly before restart */
+@keyframes lu-draw-frame-loop {
+  0%   { stroke-dashoffset: 800; opacity: 1; }
+  30%  { stroke-dashoffset: 0;   opacity: 1; }
+  92%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+/* L draws at 25% (1.5s), completes at 43% (2.6s) */
+@keyframes lu-draw-letter-l-loop {
+  0%   { stroke-dashoffset: 400; opacity: 0; }
+  25%  { stroke-dashoffset: 400; opacity: 1; }
+  43%  { stroke-dashoffset: 0;   opacity: 1; }
+  92%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+/* U draws at 40% (2.4s), completes at 62% (3.7s) */
+@keyframes lu-draw-letter-u-loop {
+  0%   { stroke-dashoffset: 400; opacity: 0; }
+  40%  { stroke-dashoffset: 400; opacity: 1; }
+  62%  { stroke-dashoffset: 0;   opacity: 1; }
+  92%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+/* Glow starts at ~63% (3.8s), ends before restart */
+@keyframes lu-glow-loop {
+  0%   { opacity: 0; stroke-width: 6; }
+  63%  { opacity: 0; stroke-width: 6; }
+  68%  { opacity: 0.9; stroke-width: 6; }
+  88%  { opacity: 0; stroke-width: 24; }
+  100% { opacity: 0; stroke-width: 24; }
 }

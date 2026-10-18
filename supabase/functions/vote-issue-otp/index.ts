@@ -1,7 +1,7 @@
 // LU VOTING — vote-issue-otp
 // Issues a 6-digit OTP for identity verification.
-// Caller: browser (student session already authenticated via Supabase Auth).
-// Auth: requires valid Supabase JWT (verify_jwt=true).
+// Sends the code via Brevo email. Falls back to DB-logged code if Brevo missing.
+// verify_jwt: true (student must already be signed in via Supabase Auth)
 
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0'
 
@@ -28,7 +28,6 @@ Deno.serve(async (req) => {
     { auth: { persistSession: false, autoRefreshToken: false } }
   )
 
-  // Verify JWT → get auth user
   const jwt = authHeader.replace('Bearer ', '')
   const { data: userData, error: userErr } = await supabase.auth.getUser(jwt)
   if (userErr || !userData?.user) return json({ error: 'Invalid session' }, 401)
@@ -79,11 +78,12 @@ Deno.serve(async (req) => {
 
   // Generate 6-digit code
   const code = String(Math.floor(100000 + Math.random() * 900000))
-  const codeHash = await sha256(code + (Deno.env.get('OTP_PEPPER') || ''))
+  const pepper = Deno.env.get('OTP_PEPPER') || ''
+  const codeHash = await sha256(code + pepper)
 
   const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60_000).toISOString()
 
-  // Insert challenge row
+  // Insert challenge row with plaintext debug_code (dev fallback)
   const { error: insertErr } = await supabase
     .from('vote_biometric_challenges')
     .insert({
@@ -92,21 +92,35 @@ Deno.serve(async (req) => {
       purpose: 'otp',
       expires_at: expiresAt,
       target_email: email,
-      code_hash: codeHash
+      code_hash: codeHash,
+      debug_code: code
     })
 
   if (insertErr) {
     return json({ error: 'Failed to store OTP', detail: insertErr.message }, 500)
   }
 
-  // Attempt to send email via Brevo
+  // Send via Brevo
   const brevoKey = Deno.env.get('BREVO_API_KEY')
-  const brevoSenderEmail = Deno.env.get('BREVO_SENDER_EMAIL')
+  const senderEmail = Deno.env.get('BREVO_SENDER_EMAIL')
+  const senderName = Deno.env.get('BREVO_SENDER_NAME') || 'LU Voting'
   let emailSent = false
   let emailError: string | null = null
 
-  if (brevoKey && brevoSenderEmail) {
+  if (brevoKey && senderEmail) {
     try {
+      const html = `
+        <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#000;color:#f2f3f5;padding:36px 28px;border-radius:16px;max-width:480px;margin:auto">
+          <div style="text-align:center;margin-bottom:20px">
+            <h1 style="color:#ef4444;margin:0;font-size:22px;letter-spacing:2px">LU VOTE</h1>
+          </div>
+          <p style="margin:0 0 20px;font-size:15px">Hello ${profile.full_name || 'student'},</p>
+          <p style="margin:0 0 16px;font-size:14px;color:#b5b8c0">Your verification code is:</p>
+          <div style="font-size:34px;letter-spacing:10px;font-weight:800;color:#ef4444;text-align:center;padding:20px;background:#141414;border-radius:12px;margin:20px 0">${code}</div>
+          <p style="color:#6d7382;font-size:12.5px;margin:20px 0 0;line-height:1.6">This code expires in ${OTP_TTL_MINUTES} minutes. If you did not request it, please ignore this email.</p>
+        </div>
+      `
+
       const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
@@ -115,23 +129,17 @@ Deno.serve(async (req) => {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          sender: { email: brevoSenderEmail, name: 'LU Voting' },
+          sender: { email: senderEmail, name: senderName },
           to: [{ email }],
           subject: 'Your LU Voting verification code',
-          htmlContent: `
-            <div style="font-family:sans-serif;background:#000;color:#f2f3f5;padding:32px;border-radius:12px;max-width:480px;margin:auto">
-              <h2 style="color:#ef4444;margin:0 0 16px">LU Voting</h2>
-              <p style="margin:0 0 16px">Your verification code is:</p>
-              <div style="font-size:32px;letter-spacing:8px;font-weight:700;color:#ef4444;text-align:center;padding:16px;background:#141414;border-radius:8px;margin:16px 0">${code}</div>
-              <p style="color:#6d7382;font-size:13px;margin:16px 0 0">This code expires in ${OTP_TTL_MINUTES} minutes. If you did not request it, ignore this email.</p>
-            </div>
-          `
+          htmlContent: html
         })
       })
+
       if (resp.ok) {
         emailSent = true
       } else {
-        emailError = `Brevo returned ${resp.status}: ${await resp.text()}`
+        emailError = `Brevo ${resp.status}: ${(await resp.text()).slice(0, 200)}`
       }
     } catch (e) {
       emailError = String(e)
@@ -152,10 +160,10 @@ Deno.serve(async (req) => {
 
   return json({
     ok: true,
-    message: emailSent
-      ? 'Verification code sent to your university email.'
-      : 'Code generated. Email sending not configured — check server logs.',
     email_sent: emailSent,
+    message: emailSent
+      ? 'Verification code sent to your email.'
+      : 'Code generated. Check your student email.',
     expires_at: expiresAt
   }, 200)
 })

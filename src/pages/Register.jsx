@@ -44,7 +44,7 @@ export default function Register() {
       setError(err.message)
       return
     }
-    nav('/elections', { replace: true })
+    nav('/', { replace: true })
   }
 
   return (

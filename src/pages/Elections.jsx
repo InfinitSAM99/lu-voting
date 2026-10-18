@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase/client'
 import { VoteIcon } from '../components/Icons'
 import BottomDrawer from '../components/BottomDrawer'
+import AppPageShell from '../components/AppPageShell'
 
 const STATUS_LABELS = {
   draft: 'Draft',
@@ -77,7 +78,7 @@ export default function Elections() {
   const isEmpty = !loading && elections.length === 0
 
   return (
-    <>
+    <AppPageShell>
       <div style={{ padding: '28px 20px 8px' }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, marginBottom: 6, letterSpacing: -0.4 }}>
           Elections
@@ -157,7 +158,7 @@ export default function Elections() {
           </div>
         </div>
       </BottomDrawer>
-    </>
+    </AppPageShell>
   )
 }
 

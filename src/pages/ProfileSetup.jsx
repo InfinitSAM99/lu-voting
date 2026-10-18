@@ -102,7 +102,7 @@ export default function ProfileSetup() {
     if (err) return setError(err.message)
 
     await refresh()
-    nav('/elections', { replace: true })
+    nav('/', { replace: true })
   }
 
   const logout = async () => {
@@ -160,14 +160,13 @@ export default function ProfileSetup() {
         onSubmit={(e) => { e.preventDefault(); save() }}
         style={{ padding: '28px 20px 60px', display: 'flex', flexDirection: 'column', gap: 18 }}
       >
-        {/* PHOTO */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 8 }}>
           <div
             onClick={() => !uploading && fileRef.current?.click()}
             style={{
               width: 96, height: 96, borderRadius: 9999,
               background: 'var(--surface-2)',
-              border: `2px ${photoUrl ? 'solid' : 'dashed'} ${photoUrl ? '#10b981' : 'var(--border)'}`,
+              border: `2px ${photoUrl ? 'solid' : 'dashed'} ${photoUrl ? '#ef4444' : 'var(--border)'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'var(--text-3)', fontSize: 34, fontWeight: 700,
               overflow: 'hidden',
@@ -210,10 +209,7 @@ export default function ProfileSetup() {
           </button>
         </div>
 
-        <Field
-          label="Full name"
-          icon={<UserIcon size={18} />}
-        >
+        <Field label="Full name" icon={<UserIcon size={18} />}>
           <input
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
@@ -221,10 +217,7 @@ export default function ProfileSetup() {
           />
         </Field>
 
-        <Field
-          label="Admission number"
-          icon={<IdIcon size={18} />}
-        >
+        <Field label="Admission number" icon={<IdIcon size={18} />}>
           <input
             value={admissionNumber}
             disabled
@@ -232,10 +225,7 @@ export default function ProfileSetup() {
           />
         </Field>
 
-        <Field
-          label="Faculty / School"
-          icon={<SchoolIcon size={18} />}
-        >
+        <Field label="Faculty / School" icon={<SchoolIcon size={18} />}>
           <select
             value={faculty}
             onChange={(e) => setFaculty(e.target.value)}
@@ -247,10 +237,7 @@ export default function ProfileSetup() {
           </select>
         </Field>
 
-        <Field
-          label="Year of study"
-          icon={<CalendarIcon size={18} />}
-        >
+        <Field label="Year of study" icon={<CalendarIcon size={18} />}>
           <select
             value={yearOfStudy}
             onChange={(e) => setYearOfStudy(e.target.value)}
@@ -279,23 +266,19 @@ export default function ProfileSetup() {
 function Field({ label, icon, children }) {
   return (
     <div>
-      <label
-        style={{
-          display: 'block',
-          fontSize: 13,
-          color: 'var(--text)',
-          marginBottom: 10,
-          fontWeight: 700,
-          letterSpacing: -0.1
-        }}
-      >
+      <label style={{
+        display: 'block',
+        fontSize: 13,
+        color: 'var(--text)',
+        marginBottom: 10,
+        fontWeight: 700,
+        letterSpacing: -0.1
+      }}>
         {label}
       </label>
       <div className="il-field">
         <span className="il-field-icon">{icon}</span>
-        <div className="il-field-body">
-          {children}
-        </div>
+        <div className="il-field-body">{children}</div>
       </div>
     </div>
   )
