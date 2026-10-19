@@ -5,6 +5,7 @@ import { ClaimProvider, useClaim } from './ClaimContext'
 import { ProfileLockProvider, useProfileLock } from './ProfileLockContext'
 import { useTheme } from '../hooks/useTheme'
 import Splash from '../components/Splash'
+import BackButtonHandler from '../components/BackButtonHandler'
 import AppPageShell from '../components/AppPageShell'
 import HomePage from '../pages/HomePage'
 import Login from '../pages/Login'
@@ -122,7 +123,12 @@ function Shell() {
 function Root() {
   const [splashDone, setSplashDone] = useState(false)
   if (!splashDone) return <Splash onDone={() => setSplashDone(true)} />
-  return <Shell />
+  return (
+    <>
+      <BackButtonHandler />
+      <Shell />
+    </>
+  )
 }
 
 export default function App() {

@@ -456,3 +456,8 @@ body {
   88%  { opacity: 0; stroke-width: 24; }
   100% { opacity: 0; stroke-width: 24; }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
